@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#2e5e3a" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="حسابات المزرعة" />
+<title>حسابات مزرعة العجول والعجميات</title>
+<style>
+  :root{
+    --bg:#f4f1e8; --surface:#fffdf7; --surface2:#ece7d8; --ink:#22301f; --ink2:#5a6656;
+    --line:#d8d0ba; --green:#2e5e3a; --green2:#3f7d4e; --gold:#b8862e; --gold-bg:#f7ecd2;
+    --red:#a83a32; --red-bg:#f9e3e0; --blue:#2f5d7c; --blue-bg:#e2edf4;
+    --shadow:0 1px 3px rgba(40,50,30,.12);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#171a14; --surface:#22261e; --surface2:#2c3125; --ink:#e9ecdf; --ink2:#a9b39e;
+      --line:#414834; --green:#7dbb8d; --green2:#93ccA3; --gold:#d9a94e; --gold-bg:#3a3220;
+      --red:#e08a82; --red-bg:#3d2624; --blue:#8db8d4; --blue-bg:#26343e;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+      color-scheme:dark;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Tahoma,"Noto Kufi Arabic",Arial,sans-serif;line-height:1.65;font-size:16px}
+  .wrap{max-width:1060px;margin:0 auto;padding:14px 14px 60px}
+  h1{font-size:1.55rem;margin:6px 0 2px;line-height:1.4}
+  .sub{color:var(--ink2);margin:0 0 14px;font-size:.98rem}
+  h2{font-size:1.2rem;margin:0 0 10px}
+  h3{font-size:1.05rem;margin:0 0 8px}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button,[role="button"],select,input,textarea{min-height:44px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--green2);outline-offset:1px}
+  label{display:block;font-weight:600;font-size:.92rem;margin-bottom:5px}
+  .hint{font-weight:400;color:var(--ink2);font-size:.85rem}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding:4px 0}
+  .tab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 18px;cursor:pointer;font-weight:700;min-height:44px}
+  .tab[aria-selected="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+  @media (prefers-color-scheme: dark){ .tab[aria-selected="true"]{color:#14210f} }
+  .view{display:none}
+  .view.active{display:block}
+
+  /* Stat cards */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow)}
+  .stat .k{color:var(--ink2);font-size:.88rem;font-weight:600}
+  .stat .v{font-size:1.45rem;font-weight:800;line-height:1.35}
+  .stat .v small{font-size:.85rem;font-weight:600;color:var(--ink2)}
+  .stat.grand{background:var(--green);border-color:var(--green);color:#fff}
+  .stat.grand .k{color:#dcead9}
+  @media (prefers-color-scheme: dark){ .stat.grand{color:#14210f} .stat.grand .k{color:#2c4631} }
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media (max-width:640px){ .grid2,.grid3{grid-template-columns:1fr} }
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+
+  .btn{border:1px solid var(--green);background:var(--green);color:#fff;border-radius:10px;padding:9px 18px;cursor:pointer;font-weight:700}
+  @media (prefers-color-scheme: dark){ .btn{color:#14210f} }
+  .btn.ghost{background:transparent;color:var(--green);border-color:var(--line)}
+  .btn.small{padding:5px 13px;min-height:38px;font-size:.92rem}
+  .btn.danger{background:transparent;color:var(--red);border-color:var(--red)}
+  .btn:active{transform:translateY(1px)}
+
+  .badge{display:inline-block;border-radius:999px;padding:1px 11px;font-size:.83rem;font-weight:700}
+  .badge.heifer{background:var(--gold-bg);color:var(--gold)}
+  .badge.calf{background:var(--blue-bg);color:var(--blue)}
+  .badge.ok{background:#e3efe0;color:var(--green)}
+  @media (prefers-color-scheme: dark){ .badge.ok{background:#2c3a26} }
+  .badge.out{background:var(--red-bg);color:var(--red)}
+
+  .animal{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--surface)}
+  .animal-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .animal-num{font-size:1.25rem;font-weight:800}
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+  .kv div{background:var(--surface2);border-radius:10px;padding:8px 10px}
+  .kv .k{font-size:.8rem;color:var(--ink2);font-weight:600}
+  .kv .v{font-weight:800}
+  .weights{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+  .wline{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:4px 0}
+  .wchip{background:var(--surface2);border-radius:8px;padding:2px 10px;font-size:.9rem}
+  .addweight{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:8px}
+  @media (max-width:520px){ .addweight{grid-template-columns:1fr 1fr} .addweight button{grid-column:1/-1} }
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .preset{border:1px dashed var(--gold);background:var(--gold-bg);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:700;min-height:44px}
+  .preset:active{transform:translateY(1px)}
+  .mw-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+  @media (max-width:640px){ .mw-form{grid-template-columns:1fr 1fr} .mw-form button{grid-column:1/-1} }
+  .gainpos{color:var(--green);font-weight:700}
+  .gainneg{color:var(--red);font-weight:700}
+
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--ink2);font-size:.88rem}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  @media (max-width:640px){
+    .tbl thead{display:none}
+    .tbl tr{display:block;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:6px 10px;background:var(--surface)}
+    .tbl td{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line)}
+    .tbl td:last-child{border-bottom:none}
+    .tbl td::before{content:attr(data-l);color:var(--ink2);font-weight:600;font-size:.88rem}
+  }
+  .empty{color:var(--ink2);text-align:center;padding:22px 10px;border:1px dashed var(--line);border-radius:12px}
+  .totalbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--gold-bg);border-radius:12px;padding:12px 14px;font-weight:800;margin-top:12px}
+  pre.summary{white-space:pre-wrap;word-break:break-word;background:var(--surface2);border-radius:12px;padding:14px;font-family:inherit;font-size:.95rem;line-height:1.8;margin:0 0 10px}
+  .msg{min-height:1.4em;font-weight:700;color:var(--green);margin-top:8px}
+  ol.steps li{margin-bottom:9px}
+  .note{background:var(--gold-bg);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .filelab{display:inline-block}
+  input[type="file"]{padding:8px}
+  footer{color:var(--ink2);font-size:.88rem;margin-top:26px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🐄 حسابات مزرعة العجول والعجميات</h1>
+  <p class="sub">تسجيل الحيوانات المرقّمة وأوزانها وسعر الدخول، وجدول للأوزان الشهرية شهر بشهر، ومصاريف العلف والتبن بالكميات الكبيرة (طن علف، حمل تبن) بسعرها الإجمالي، والأدوية والتحصينات ورواتب العمال — مع جمع تلقائي لإجمالي المصاريف. البيانات بتتحفظ تلقائيًا على نفس الجهاز.</p>
+
+  <nav class="tabs" role="tablist" aria-label="أقسام التطبيق">
+    <button class="tab" role="tab" data-view="dash" aria-selected="true">لوحة الحسابات</button>
+    <button class="tab" role="tab" data-view="animals" aria-selected="false">الحيوانات (<span id="tabCount">0</span>)</button>
+    <button class="tab" role="tab" data-view="weights" aria-selected="false">الأوزان الشهرية</button>
+    <button class="tab" role="tab" data-view="expenses" aria-selected="false">المصاريف</button>
+    <button class="tab" role="tab" data-view="summary" aria-selected="false">الملخص والنسخ</button>
+    <button class="tab" role="tab" data-view="install" aria-selected="false">التثبيت على الموبايل</button>
+  </nav>
+
+  <!-- ===== Dashboard ===== -->
+  <section class="view active" id="view-dash">
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <h2>تفصيل المصاريف حسب البند</h2>
+      <div id="breakdown"></div>
+      <div class="totalbar"><span>إجمالي كل المصاريف + أسعار الدخول</span><span class="num" id="grandTotal">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>تكلفة كل حيوان</h2>
+      <p class="hint" style="margin-top:0">سعر الدخول + المصاريف المسجلة برقم الحيوان نفسه. المصاريف العامة (من غير رقم حيوان) لا تدخل في تكلفة رأس بعينه، لكنها داخلة في الإجمالي العام بالأعلى، ومتوسط التكلفة للرأس بيوزّع كل التكاليف على عدد الحيوانات الموجودة.</p>
+      <div id="perAnimal"></div>
+    </div>
+  </section>
+
+  <!-- ===== Animals ===== -->
+  <section class="view" id="view-animals">
+    <div class="card">
+      <h2 id="animalFormTitle">إضافة عجل / عجمية جديدة</h2>
+      <form id="animalForm">
+        <div class="grid3">
+          <div><label for="aNumber">رقم الحيوان *</label><input id="aNumber" type="text" inputmode="numeric" required placeholder="مثال: 6" /></div>
+          <div><label for="aType">النوع *</label>
+            <select id="aType"><option value="عجمية">عجمية</option><option value="عجل">عجل</option></select></div>
+          <div><label for="aStatus">الحالة</label>
+            <select id="aStatus"><option value="موجود">موجود بالمزرعة</option><option value="مباع">مباع</option><option value="نافق">نافق</option></select></div>
+        </div>
+        <div class="grid3" style="margin-top:12px">
+          <div><label for="aEntryDate">تاريخ الدخول</label><input id="aEntryDate" type="date" /></div>
+          <div><label for="aEntryWeight">وزن الدخول (كجم)</label><input id="aEntryWeight" type="number" min="0" step="0.5" placeholder="مثال: 180" /></div>
+          <div><label for="aEntryPrice">سعر الدخول (جنيه) *</label><input id="aEntryPrice" type="number" min="0" step="any" required placeholder="مثال: 45000" /></div>
+        </div>
+        <div style="margin-top:12px"><label for="aNotes">ملاحظات <span class="hint">(السلالة، المصدر، أي تفاصيل)</span></label>
+          <input id="aNotes" type="text" placeholder="مثال: خليط، شراء من سوق…" /></div>
+        <div class="row" style="margin-top:14px">
+          <button type="submit" class="btn" id="animalSubmit">حفظ الحيوان</button>
+          <button type="button" class="btn ghost" id="animalCancel" style="display:none">إلغاء التعديل</button>
+        </div>
+        <div class="msg" id="animalMsg" role="status"></div>
+      </form>
+    </div>
+    <div id="animalList"></div>
+  </section>
+
+  <!-- ===== Monthly weights ===== -->
+  <section class="view" id="view-weights">
+    <div class="card">
+      <h2>تسجيل وزن شهري</h2>
+      <p class="hint" style="margin-top:0">اختار الحيوان والشهر والوزن — الوزن بيظهر في الجدول تحت في خانة الشهر بتاعه. لو سجلت أكتر من وزن في نفس الشهر، الجدول بياخد آخر وزن في الشهر.</p>
+      <form id="mwForm" class="mw-form">
+        <div><label for="mwAnimal">الحيوان *</label><select id="mwAnimal" required></select></div>
+        <div><label for="mwMonth">الشهر *</label><input id="mwMonth" type="month" required /></div>
+        <div><label for="mwWeight">الوزن (كجم) *</label><input id="mwWeight" type="number" min="0" step="0.5" required placeholder="مثال: 215" /></div>
+        <button type="submit" class="btn">حفظ الوزن</button>
+      </form>
+      <div class="msg" id="mwMsg" role="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>جدول الأوزان الشهرية</h2>
+      <p class="hint" style="margin-top:0">كل صف = حيوان، وكل عمود = شهر. وزن الدخول بيتحسب في شهر الدخول لو تاريخ الدخول متسجل. عمود «الزيادة في الشهر» بيقارن وزن الشهر بوزن الشهر اللي قبله لنفس الحيوان.</p>
+      <div id="monthlyTable"></div>
+    </div>
+  </section>
+
+  <!-- ===== Expenses ===== -->
+  <section class="view" id="view-expenses">
+    <div class="card">
+      <h2>إضافة مصروف</h2>
+      <p class="hint" style="margin-top:0">للكميات الكبيرة اضغط اختيار جاهز وهيتملى النموذج، أو اكتب الإجمالي على طول من غير كمية وسعر وحدة:</p>
+      <div class="presets">
+        <button type="button" class="preset" data-preset="feed-ton">🌾 طن علف ≈ 16,000 ج</button>
+        <button type="button" class="preset" data-preset="straw-load">🎋 حمل تبن = 2,000 ج</button>
+      </div>
+      <form id="expenseForm">
+        <div class="grid3">
+          <div><label for="eCategory">البند *</label>
+            <select id="eCategory">
+              <option value="علف">علف</option>
+              <option value="تبن">تبن</option>
+              <option value="أدوية">أدوية</option>
+              <option value="تحصينات">تحصينات</option>
+              <option value="أجور">أجور (دفعات للعامل)</option>
+              <option value="أخرى">مصاريف أخرى</option>
+            </select></div>
+          <div><label for="eDate">التاريخ *</label><input id="eDate" type="date" required /></div>
+          <div><label for="eAnimal">رقم الحيوان <span class="hint">(اختياري — اتركه فاضي لو مصروف عام)</span></label>
+            <input id="eAnimal" type="text" inputmode="numeric" placeholder="مثال: 3" /></div>
+        </div>
+        <div style="margin-top:12px"><label for="eDesc">البيان *</label>
+          <input id="eDesc" type="text" required placeholder="مثال: علف مركز 16% — شيكارة / تحصين حمى قلاعية / دواء…" /></div>
+        <div class="grid3" style="margin-top:12px">
+          <div><label for="eQty">الكمية</label><input id="eQty" type="number" min="0" step="any" placeholder="مثال: 10" /></div>
+          <div><label for="eUnit">الوحدة</label>
+            <select id="eUnit"><option>كجم</option><option>طن</option><option>حمل</option><option>شيكارة</option><option>حزمة / بالة</option><option>لتر</option><option>عبوة</option><option>جرعة</option><option>مرة</option><option>—</option></select></div>
+          <div><label for="eUnitPrice">سعر الوحدة (جنيه)</label><input id="eUnitPrice" type="number" min="0" step="any" placeholder="مثال: 850" /></div>
+        </div>
+        <div class="grid2" style="margin-top:12px">
+          <div><label for="eTotal">الإجمالي (جنيه) * <span class="hint">بيتحسب تلقائيًا = الكمية × سعر الوحدة، أو اكتبه يدويًا على طول للكميات الكبيرة (طن علف 16,000 ج / حمل تبن 2,000 ج) وسيب الكمية وسعر الوحدة فاضيين</span></label>
+            <input id="eTotal" type="number" min="0" step="any" required placeholder="0" /></div>
+        </div>
+        <div class="row" style="margin-top:14px"><button type="submit" class="btn">حفظ المصروف</button></div>
+        <div class="msg" id="expenseMsg" role="status"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>العمال والرواتب</h2>
+      <form id="workerForm">
+        <div class="grid3">
+          <div><label for="wName">اسم العامل *</label><input id="wName" type="text" required placeholder="مثال: محمد أحمد" /></div>
+          <div><label for="wSalary">الراتب الشهري (جنيه) *</label><input id="wSalary" type="number" min="0" step="any" required placeholder="مثال: 6000" /></div>
+          <div><label for="wRole">الوظيفة / ملاحظات</label><input id="wRole" type="text" placeholder="مثال: عامل تسمين" /></div>
+        </div>
+        <div class="row" style="margin-top:12px"><button type="submit" class="btn">إضافة العامل</button></div>
+        <div class="msg" id="workerMsg" role="status"></div>
+      </form>
+      <div id="workerList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h2 style="margin:0">سجل المصاريف</h2><span class="spacer"></span>
+        <label for="eFilter" class="hint" style="margin:0">عرض بند:</label>
+        <select id="eFilter" style="width:auto;min-width:140px">
+          <option value="">الكل</option><option>علف</option><option>تبن</option><option>أدوية</option>
+          <option>تحصينات</option><option>أجور</option><option>أخرى</option>
+        </select>
+      </div>
+      <div id="expenseList" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- ===== Summary ===== -->
+  <section class="view" id="view-summary">
+    <div class="card">
+      <h2>ملخص المزرعة الكامل</h2>
+      <pre class="summary" id="farmSummary"></pre>
+      <div class="row">
+        <button class="btn" id="copyFarm">📋 نسخ ملخص المزرعة</button>
+        <span class="msg" id="copyMsg" role="status"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>ملخص كل حيوان (لإرساله منفصلًا)</h2>
+      <div id="animalSummaries"></div>
+    </div>
+    <div class="card">
+      <h2>تصدير واستيراد البيانات</h2>
+      <p class="hint" style="margin-top:0">ملف JSON واحد فيه كل الحيوانات والمصاريف والعمال. ابعته للشخص التاني (واتساب مثلًا) وهو يعمل «استيراد» من نفس التطبيق بدل ما يكتب البيانات من جديد. الاستيراد بيستبدل البيانات الحالية على الجهاز.</p>
+      <div class="row">
+        <button class="btn" id="exportBtn">⬇ تصدير JSON</button>
+        <label class="filelab btn ghost" for="importFile" style="cursor:pointer">⬆ استيراد JSON</label>
+        <input id="importFile" type="file" accept=".json,application/json" style="display:none" />
+      </div>
+      <div class="msg" id="ioMsg" role="status"></div>
+    </div>
+  </section>
+
+  <!-- ===== Install ===== -->
+  <section class="view" id="view-install">
+    <div class="card">
+      <h2>تثبيت التطبيق على الموبايل</h2>
+      <h3>أندرويد (Chrome)</h3>
+      <ol class="steps">
+        <li>افتح التطبيق من المتصفح على الموبايل.</li>
+        <li>من القائمة ⋮ اختار <b>Add to Home Screen</b> (إضافة إلى الشاشة الرئيسية) أو <b>Install app</b>.</li>
+        <li>هيظهر أيقونة على الشاشة الرئيسية ويفتح زي أي تطبيق.</li>
+      </ol>
+      <h3>آيفون (Safari)</h3>
+      <ol class="steps">
+        <li>افتح التطبيق في متصفح Safari.</li>
+        <li>اضغط زر المشاركة <b>Share</b> ثم اختار <b>Add to Home Screen</b>.</li>
+      </ol>
+      <div class="note">
+        <b>مهم:</b> البيانات بتتحفظ على نفس الجهاز بس، وكل نسخة من التطبيق (لينك أو ملف HTML) ليها حفظ منفصل — اللي تدخله في نسخة مش هيظهر في التانية. اختار نسخة واحدة والتزم بيها، وانقل البيانات بين الأجهزة بتصدير واستيراد JSON من تبويب «الملخص والنسخ».
+      </div>
+    </div>
+  </section>
+
+  <footer>حسابات مزرعة العجول والعجميات — كل الأرقام بتتجمع تلقائيًا من اللي بتسجله.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY = "calfFarmAccountsV1";
+var CATS = ["علف","تبن","أدوية","تحصينات","أجور","أخرى"];
+
+function today(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function fmt(n){ return (Math.round(num(n)*100)/100).toLocaleString("ar-EG") ; }
+function fmtMoney(n){ return fmt(n) + " ج"; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+function seed(){
+  var animals = [];
+  for (var i=1;i<=5;i++){
+    animals.push({ id: uid()+i, number: String(i), type: "عجمية", status: "موجود",
+      entryDate: "", entryWeight: "", entryPrice: "", notes: "", weights: [] });
+  }
+  return { animals: animals, expenses: [], workers: [] };
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(!raw) return seed();
+    var d = JSON.parse(raw);
+    if(!d || !Array.isArray(d.animals)) return seed();
+    d.expenses = d.expenses || []; d.workers = d.workers || [];
+    return d;
+  }catch(e){ return seed(); }
+}
+var state = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+save();
+
+var editingAnimalId = null;
+
+/* ---------- Tabs ---------- */
+var tabs = document.querySelectorAll(".tab");
+tabs.forEach(function(t){
+  t.addEventListener("click", function(){
+    tabs.forEach(function(x){ x.setAttribute("aria-selected","false"); });
+    t.setAttribute("aria-selected","true");
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("active"); });
+    document.getElementById("view-"+t.getAttribute("data-view")).classList.add("active");
+    render();
+  });
+});
+
+/* ---------- Calculations ---------- */
+function latestWeight(a){
+  if(a.weights && a.weights.length){
+    var sorted = a.weights.slice().sort(function(x,y){ return x.date < y.date ? -1 : 1; });
+    return num(sorted[sorted.length-1].weight);
+  }
+  return num(a.entryWeight);
+}
+function catTotal(cat){ return state.expenses.filter(function(e){return e.category===cat;}).reduce(function(s,e){return s+num(e.total);},0); }
+function entryTotal(){ return state.animals.reduce(function(s,a){return s+num(a.entryPrice);},0); }
+function workersTotal(){ return state.workers.reduce(function(s,w){return s+num(w.salary);},0); }
+function expensesTotal(){ return state.expenses.reduce(function(s,e){return s+num(e.total);},0); }
+function grandTotal(){ return entryTotal() + expensesTotal() + workersTotal(); }
+function animalExpenses(number){ return state.expenses.filter(function(e){return e.animalNumber && String(e.animalNumber)===String(number);}).reduce(function(s,e){return s+num(e.total);},0); }
+function presentAnimals(){ return state.animals.filter(function(a){return a.status==="موجود";}); }
+
+/* ---------- Render: dashboard ---------- */
+function render(){
+  document.getElementById("tabCount").textContent = state.animals.length;
+  var present = presentAnimals();
+  var weighed = present.filter(function(a){ return latestWeight(a) > 0; });
+  var avgWeight = weighed.length ? weighed.reduce(function(s,a){return s+latestWeight(a);},0)/weighed.length : 0;
+  var perHead = present.length ? grandTotal()/present.length : 0;
+
+  var stats = [
+    ["عدد الحيوانات الكلي", state.animals.length + " <small>(" + present.length + " موجود)</small>"],
+    ["إجمالي أسعار الدخول", fmtMoney(entryTotal())],
+    ["مصاريف العلف", fmtMoney(catTotal("علف"))],
+    ["مصاريف التبن", fmtMoney(catTotal("تبن"))],
+    ["أدوية + تحصينات", fmtMoney(catTotal("أدوية")+catTotal("تحصينات"))],
+    ["رواتب العمال (شهريًا)", fmtMoney(workersTotal())],
+    ["متوسط الوزن الحالي", weighed.length ? fmt(avgWeight) + " <small>كجم</small>" : "—"],
+    ["متوسط التكلفة للرأس الموجود", present.length ? fmtMoney(perHead) : "—"]
+  ];
+  document.getElementById("stats").innerHTML = stats.map(function(s){
+    return '<div class="stat"><div class="k">'+s[0]+'</div><div class="v">'+s[1]+'</div></div>';
+  }).join("") + '<div class="stat grand"><div class="k">الإجمالي الكلي (دخول + كل المصاريف + الرواتب)</div><div class="v">'+fmtMoney(grandTotal())+'</div></div>';
+
+  var rows = [["أسعار دخول الحيوانات", entryTotal()]];
+  CATS.forEach(function(c){ rows.push([c, catTotal(c)]); });
+  rows.push(["رواتب العمال (إجمالي الشهري)", workersTotal()]);
+  document.getElementById("breakdown").innerHTML =
+    '<table><tbody>' + rows.map(function(r){
+      return '<tr><td>'+esc(r[0])+'</td><td class="num" style="text-align:left;font-weight:700">'+fmtMoney(r[1])+'</td></tr>';
+    }).join("") + '</tbody></table>';
+  document.getElementById("grandTotal").textContent = fmtMoney(grandTotal());
+
+  if(!state.animals.length){
+    document.getElementById("perAnimal").innerHTML = '<div class="empty">لا توجد حيوانات مسجلة بعد.</div>';
+  } else {
+    document.getElementById("perAnimal").innerHTML =
+      '<table class="tbl"><thead><tr><th>الرقم</th><th>النوع</th><th>سعر الدخول</th><th>مصاريفه المباشرة</th><th>إجمالي تكلفته</th><th>آخر وزن</th></tr></thead><tbody>' +
+      state.animals.map(function(a){
+        var direct = animalExpenses(a.number);
+        return '<tr><td data-l="الرقم"><b>'+esc(a.number)+'</b></td><td data-l="النوع">'+esc(a.type)+'</td>' +
+          '<td data-l="سعر الدخول" class="num">'+fmtMoney(a.entryPrice)+'</td>' +
+          '<td data-l="مصاريفه المباشرة" class="num">'+fmtMoney(direct)+'</td>' +
+          '<td data-l="إجمالي تكلفته" class="num"><b>'+fmtMoney(num(a.entryPrice)+direct)+'</b></td>' +
+          '<td data-l="آخر وزن" class="num">'+(latestWeight(a)? fmt(latestWeight(a))+" كجم" : "—")+'</td></tr>';
+      }).join("") + '</tbody></table>';
+  }
+  renderAnimals(); renderExpenses(); renderWorkers(); renderSummary(); renderMonthly();
+}
+
+/* ---------- Render: animals ---------- */
+function renderAnimals(){
+  var box = document.getElementById("animalList");
+  if(!state.animals.length){ box.innerHTML = '<div class="empty">لا توجد حيوانات بعد — أضف أول حيوان من النموذج بالأعلى.</div>'; return; }
+  box.innerHTML = state.animals.map(function(a){
+    var lw = latestWeight(a);
+    var gain = (lw && num(a.entryWeight)) ? lw - num(a.entryWeight) : null;
+    var wHist = (a.weights||[]).slice().sort(function(x,y){return x.date<y.date?-1:1;}).map(function(w){
+      return '<span class="wchip">'+esc(w.date||"")+' — <b>'+fmt(w.weight)+' كجم</b> <button type="button" class="btn danger small" data-delw="'+a.id+'|'+w.id+'" style="min-height:30px;padding:1px 9px">✕</button></span>';
+    }).join(" ");
+    return '<div class="animal">' +
+      '<div class="animal-head"><span class="animal-num">رقم '+esc(a.number)+'</span>' +
+      '<span class="badge '+(a.type==="عجمية"?"heifer":"calf")+'">'+esc(a.type)+'</span>' +
+      '<span class="badge '+(a.status==="موجود"?"ok":"out")+'">'+esc(a.status)+'</span>' +
+      '<span class="spacer"></span>' +
+      '<button type="button" class="btn ghost small" data-edit="'+a.id+'">تعديل</button>' +
+      '<button type="button" class="btn danger small" data-del="'+a.id+'">حذف</button></div>' +
+      '<div class="kv">' +
+        '<div><div class="k">تاريخ الدخول</div><div class="v">'+(a.entryDate?esc(a.entryDate):"—")+'</div></div>' +
+        '<div><div class="k">وزن الدخول</div><div class="v">'+(num(a.entryWeight)?fmt(a.entryWeight)+" كجم":"—")+'</div></div>' +
+        '<div><div class="k">سعر الدخول</div><div class="v">'+(num(a.entryPrice)?fmtMoney(a.entryPrice):"—")+'</div></div>' +
+        '<div><div class="k">آخر وزن</div><div class="v">'+(lw?fmt(lw)+" كجم":"—")+'</div></div>' +
+        '<div><div class="k">الزيادة في الوزن</div><div class="v">'+(gain===null?"—":(gain>=0?"+":"")+fmt(gain)+" كجم")+'</div></div>' +
+        '<div><div class="k">تكلفته حتى الآن</div><div class="v">'+fmtMoney(num(a.entryPrice)+animalExpenses(a.number))+'</div></div>' +
+      '</div>' +
+      (a.notes ? '<p style="margin:10px 0 0"><b>ملاحظات:</b> '+esc(a.notes)+'</p>' : '') +
+      '<div class="weights"><b>سجل الأوزان:</b> ' + (wHist || '<span class="hint">لا توجد أوزان مسجلة بعد — أضف وزنًا جديدًا:</span>') +
+        '<form class="addweight" data-wform="'+a.id+'">' +
+          '<input type="date" name="wdate" value="'+today()+'" aria-label="تاريخ الوزن" />' +
+          '<input type="number" name="wval" min="0" step="0.5" required placeholder="الوزن (كجم)" aria-label="الوزن بالكيلوجرام" />' +
+          '<button type="submit" class="btn small">+ إضافة وزن</button>' +
+        '</form></div>' +
+    '</div>';
+  }).join("");
+
+  box.querySelectorAll("[data-edit]").forEach(function(b){ b.addEventListener("click", function(){ startEditAnimal(b.getAttribute("data-edit")); }); });
+  box.querySelectorAll("[data-del]").forEach(function(b){ b.addEventListener("click", function(){ deleteAnimal(b.getAttribute("data-del")); }); });
+  box.querySelectorAll("[data-delw]").forEach(function(b){ b.addEventListener("click", function(){
+    var parts = b.getAttribute("data-delw").split("|"); deleteWeight(parts[0], parts[1]);
+  }); });
+  box.querySelectorAll("[data-wform]").forEach(function(f){ f.addEventListener("submit", function(ev){
+    ev.preventDefault(); addWeight(f.getAttribute("data-wform"), f);
+  }); });
+}
+
+function startEditAnimal(id){
+  var a = state.animals.find(function(x){return x.id===id;}); if(!a) return;
+  editingAnimalId = id;
+  document.getElementById("aNumber").value = a.number;
+  document.getElementById("aType").value = a.type;
+  document.getElementById("aStatus").value = a.status;
+  document.getElementById("aEntryDate").value = a.entryDate || "";
+  document.getElementById("aEntryWeight").value = a.entryWeight || "";
+  document.getElementById("aEntryPrice").value = a.entryPrice || "";
+  document.getElementById("aNotes").value = a.notes || "";
+  document.getElementById("animalFormTitle").textContent = "تعديل الحيوان رقم " + a.number;
+  document.getElementById("animalSubmit").textContent = "حفظ التعديل";
+  document.getElementById("animalCancel").style.display = "";
+  document.getElementById("aNumber").focus();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function resetAnimalForm(){
+  editingAnimalId = null;
+  document.getElementById("animalForm").reset();
+  document.getElementById("animalFormTitle").textContent = "إضافة عجل / عجمية جديدة";
+  document.getElementById("animalSubmit").textContent = "حفظ الحيوان";
+  document.getElementById("animalCancel").style.display = "none";
+}
+document.getElementById("animalCancel").addEventListener("click", resetAnimalForm);
+
+document.getElementById("animalForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var number = document.getElementById("aNumber").value.trim();
+  var dup = state.animals.some(function(x){ return x.number===number && x.id!==editingAnimalId; });
+  var msg = document.getElementById("animalMsg");
+  if(dup){ msg.textContent = "⚠ الرقم " + number + " مستخدم لحيوان تاني — اختر رقمًا مختلفًا."; return; }
+  var data = {
+    number: number,
+    type: document.getElementById("aType").value,
+    status: document.getElementById("aStatus").value,
+    entryDate: document.getElementById("aEntryDate").value,
+    entryWeight: document.getElementById("aEntryWeight").value,
+    entryPrice: document.getElementById("aEntryPrice").value,
+    notes: document.getElementById("aNotes").value.trim()
+  };
+  if(editingAnimalId){
+    var a = state.animals.find(function(x){return x.id===editingAnimalId;});
+    Object.assign(a, data);
+    msg.textContent = "✓ تم حفظ تعديل الحيوان رقم " + number;
+  } else {
+    data.id = uid(); data.weights = [];
+    state.animals.push(data);
+    msg.textContent = "✓ تمت إضافة الحيوان رقم " + number;
+  }
+  save(); resetAnimalForm(); render();
+  document.getElementById("animalMsg").textContent = msg.textContent;
+});
+function deleteAnimal(id){
+  var a = state.animals.find(function(x){return x.id===id;}); if(!a) return;
+  state.animals = state.animals.filter(function(x){return x.id!==id;});
+  save(); render();
+}
+function addWeight(animalId, form){
+  var a = state.animals.find(function(x){return x.id===animalId;}); if(!a) return;
+  var w = num(form.querySelector('[name="wval"]').value);
+  if(!w) return;
+  a.weights = a.weights || [];
+  a.weights.push({ id: uid(), date: form.querySelector('[name="wdate"]').value || today(), weight: w });
+  save(); render();
+}
+function deleteWeight(animalId, weightId){
+  var a = state.animals.find(function(x){return x.id===animalId;}); if(!a) return;
+  a.weights = (a.weights||[]).filter(function(w){return w.id!==weightId;});
+  save(); render();
+}
+
+/* ---------- Monthly weights table ---------- */
+var MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+function monthLabel(ym){
+  var p = String(ym||"").split("-");
+  var m = parseInt(p[1],10);
+  if(!p[0] || !m || m<1 || m>12) return ym || "—";
+  return MONTH_NAMES[m-1] + " " + p[0];
+}
+function thisMonth(){ return today().slice(0,7); }
+/* وزن كل حيوان في كل شهر: آخر وزن مسجل داخل الشهر، ووزن الدخول بيتحسب في شهر الدخول */
+function monthlyWeights(a){
+  var map = {};
+  if(a.entryDate && num(a.entryWeight)) map[a.entryDate.slice(0,7)] = num(a.entryWeight);
+  (a.weights||[]).slice().sort(function(x,y){return x.date<y.date?-1:1;}).forEach(function(w){
+    if(w.date && num(w.weight)) map[w.date.slice(0,7)] = num(w.weight);
+  });
+  return map;
+}
+function renderMonthly(){
+  var sel = document.getElementById("mwAnimal");
+  var prev = sel.value;
+  sel.innerHTML = state.animals.length
+    ? state.animals.map(function(a){ return '<option value="'+a.id+'">رقم '+esc(a.number)+' — '+esc(a.type)+'</option>'; }).join("")
+    : '<option value="">لا توجد حيوانات</option>';
+  if(prev && state.animals.some(function(a){return a.id===prev;})) sel.value = prev;
+  var mInput = document.getElementById("mwMonth");
+  if(!mInput.value) mInput.value = thisMonth();
+
+  var box = document.getElementById("monthlyTable");
+  var monthSet = {};
+  state.animals.forEach(function(a){
+    var map = monthlyWeights(a);
+    Object.keys(map).forEach(function(m){ monthSet[m] = true; });
+  });
+  var months = Object.keys(monthSet).sort();
+  if(!state.animals.length || !months.length){
+    box.innerHTML = '<div class="empty">لا توجد أوزان مسجلة بعد — سجل أول وزن شهري من النموذج بالأعلى أو من تبويب «الحيوانات».</div>';
+    return;
+  }
+  var lastMonth = months[months.length-1];
+  var prevMonth = months.length > 1 ? months[months.length-2] : null;
+  var head = '<tr><th>الحيوان</th>' + months.map(function(m){ return '<th>'+esc(monthLabel(m))+'</th>'; }).join("") +
+    '<th>الزيادة في '+esc(monthLabel(lastMonth))+'</th><th>الزيادة الكلية</th></tr>';
+  var body = state.animals.map(function(a){
+    var map = monthlyWeights(a);
+    var cells = months.map(function(m){
+      return '<td data-l="'+esc(monthLabel(m))+'" class="num">'+(map[m]!=null ? fmt(map[m])+" كجم" : "—")+'</td>';
+    }).join("");
+    var gainLast = (prevMonth && map[lastMonth]!=null && map[prevMonth]!=null) ? map[lastMonth]-map[prevMonth] : null;
+    var keys = Object.keys(map).sort();
+    var gainTotal = keys.length > 1 ? map[keys[keys.length-1]] - map[keys[0]] : null;
+    return '<tr><td data-l="الحيوان"><b>رقم '+esc(a.number)+'</b> <span class="badge '+(a.type==="عجمية"?"heifer":"calf")+'">'+esc(a.type)+'</span></td>' +
+      cells +
+      '<td data-l="الزيادة في '+esc(monthLabel(lastMonth))+'" class="num">'+ (gainLast===null ? "—" : '<span class="'+(gainLast>=0?"gainpos":"gainneg")+'">'+(gainLast>=0?"+":"")+fmt(gainLast)+' كجم</span>') +'</td>' +
+      '<td data-l="الزيادة الكلية" class="num">'+ (gainTotal===null ? "—" : '<span class="'+(gainTotal>=0?"gainpos":"gainneg")+'">'+(gainTotal>=0?"+":"")+fmt(gainTotal)+' كجم</span>') +'</td></tr>';
+  }).join("");
+  box.innerHTML = '<table class="tbl"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+}
+document.getElementById("mwForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var a = state.animals.find(function(x){return x.id===document.getElementById("mwAnimal").value;});
+  var msg = document.getElementById("mwMsg");
+  if(!a){ msg.textContent = "⚠ أضف حيوانًا أولًا من تبويب «الحيوانات»."; return; }
+  var ym = document.getElementById("mwMonth").value;
+  var w = num(document.getElementById("mwWeight").value);
+  if(!ym || !w){ msg.textContent = "⚠ اختر الشهر واكتب الوزن."; return; }
+  a.weights = a.weights || [];
+  a.weights.push({ id: uid(), date: ym + "-01", weight: w });
+  save(); render();
+  document.getElementById("mwMsg").textContent = "✓ تم حفظ وزن رقم " + a.number + " لشهر " + monthLabel(ym) + ": " + fmt(w) + " كجم";
+  document.getElementById("mwWeight").value = "";
+});
+
+/* ---------- Expenses ---------- */
+var eQty = document.getElementById("eQty"), eUnitPrice = document.getElementById("eUnitPrice"), eTotal = document.getElementById("eTotal");
+function autoTotal(){ var q=num(eQty.value), p=num(eUnitPrice.value); if(q && p) eTotal.value = Math.round(q*p*100)/100; }
+eQty.addEventListener("input", autoTotal); eUnitPrice.addEventListener("input", autoTotal);
+document.getElementById("eDate").value = today();
+
+/* اختيارات جاهزة للكميات الكبيرة: طن علف / حمل تبن بسعر إجمالي */
+var PRESETS = {
+  "feed-ton":   { category:"علف", desc:"طن علف", qty:1, unit:"طن",  unitPrice:16000 },
+  "straw-load": { category:"تبن", desc:"حمل تبن", qty:1, unit:"حمل", unitPrice:2000 }
+};
+document.querySelectorAll("[data-preset]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var p = PRESETS[b.getAttribute("data-preset")]; if(!p) return;
+    document.getElementById("eCategory").value = p.category;
+    document.getElementById("eDesc").value = p.desc;
+    eQty.value = p.qty;
+    document.getElementById("eUnit").value = p.unit;
+    eUnitPrice.value = p.unitPrice;
+    autoTotal();
+    document.getElementById("expenseMsg").textContent = "اتملأ النموذج بـ «" + p.desc + "» بإجمالي " + fmtMoney(p.qty * p.unitPrice) + " — عدّل الرقم لو السعر اختلف، ولو التاريخ مش النهاردة غيّره، وبعدين اضغط «حفظ المصروف».";
+    eTotal.focus();
+  });
+});
+
+document.getElementById("expenseForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  state.expenses.push({
+    id: uid(),
+    category: document.getElementById("eCategory").value,
+    date: document.getElementById("eDate").value || today(),
+    animalNumber: document.getElementById("eAnimal").value.trim(),
+    desc: document.getElementById("eDesc").value.trim(),
+    qty: eQty.value, unit: document.getElementById("eUnit").value,
+    unitPrice: eUnitPrice.value, total: eTotal.value
+  });
+  save();
+  document.getElementById("expenseForm").reset();
+  document.getElementById("eDate").value = today();
+  document.getElementById("expenseMsg").textContent = "✓ تم حفظ المصروف";
+  render();
+});
+document.getElementById("eFilter").addEventListener("change", renderExpenses);
+
+function renderExpenses(){
+  var filter = document.getElementById("eFilter").value;
+  var list = state.expenses.slice().sort(function(a,b){return a.date<b.date?1:-1;});
+  if(filter) list = list.filter(function(e){return e.category===filter;});
+  var box = document.getElementById("expenseList");
+  if(!list.length){ box.innerHTML = '<div class="empty">لا توجد مصاريف مسجلة في هذا العرض.</div>'; return; }
+  var sum = list.reduce(function(s,e){return s+num(e.total);},0);
+  box.innerHTML = '<table class="tbl"><thead><tr><th>التاريخ</th><th>البند</th><th>البيان</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>حيوان</th><th></th></tr></thead><tbody>' +
+    list.map(function(e){
+      return '<tr><td data-l="التاريخ" class="num">'+esc(e.date)+'</td>' +
+      '<td data-l="البند"><span class="badge ok">'+esc(e.category)+'</span></td>' +
+      '<td data-l="البيان">'+esc(e.desc)+'</td>' +
+      '<td data-l="الكمية" class="num">'+(num(e.qty)? fmt(e.qty)+" "+esc(e.unit||"") : "—")+'</td>' +
+      '<td data-l="سعر الوحدة" class="num">'+(num(e.unitPrice)? fmtMoney(e.unitPrice) : "—")+'</td>' +
+      '<td data-l="الإجمالي" class="num"><b>'+fmtMoney(e.total)+'</b></td>' +
+      '<td data-l="حيوان" class="num">'+(e.animalNumber? "رقم "+esc(e.animalNumber) : "عام")+'</td>' +
+      '<td><button type="button" class="btn danger small" data-dele="'+e.id+'">حذف</button></td></tr>';
+    }).join("") + '</tbody></table>' +
+    '<div class="totalbar"><span>مجموع المعروض</span><span class="num">'+fmtMoney(sum)+'</span></div>';
+  box.querySelectorAll("[data-dele]").forEach(function(b){ b.addEventListener("click", function(){
+    state.expenses = state.expenses.filter(function(x){return x.id!==b.getAttribute("data-dele");});
+    save(); render();
+  }); });
+}
+
+/* ---------- Workers ---------- */
+document.getElementById("workerForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  state.workers.push({ id: uid(),
+    name: document.getElementById("wName").value.trim(),
+    salary: document.getElementById("wSalary").value,
+    role: document.getElementById("wRole").value.trim() });
+  save();
+  document.getElementById("workerForm").reset();
+  document.getElementById("workerMsg").textContent = "✓ تمت إضافة العامل";
+  render();
+});
+function renderWorkers(){
+  var box = document.getElementById("workerList");
+  if(!state.workers.length){ box.innerHTML = '<div class="empty">لا يوجد عمال مسجلون بعد.</div>'; return; }
+  box.innerHTML = '<table class="tbl"><thead><tr><th>الاسم</th><th>الوظيفة</th><th>الراتب الشهري</th><th></th></tr></thead><tbody>' +
+    state.workers.map(function(w){
+      return '<tr><td data-l="الاسم"><b>'+esc(w.name)+'</b></td><td data-l="الوظيفة">'+esc(w.role||"—")+'</td>' +
+      '<td data-l="الراتب الشهري" class="num"><b>'+fmtMoney(w.salary)+'</b></td>' +
+      '<td><button type="button" class="btn danger small" data-delw2="'+w.id+'">حذف</button></td></tr>';
+    }).join("") + '</tbody></table>' +
+    '<div class="totalbar"><span>إجمالي الرواتب الشهرية</span><span class="num">'+fmtMoney(workersTotal())+'</span></div>';
+  box.querySelectorAll("[data-delw2]").forEach(function(b){ b.addEventListener("click", function(){
+    state.workers = state.workers.filter(function(x){return x.id!==b.getAttribute("data-delw2");});
+    save(); render();
+  }); });
+}
+
+/* ---------- Summary & copy ---------- */
+function animalSummaryText(a){
+  var lw = latestWeight(a);
+  var lines = [];
+  lines.push("حيوان رقم " + a.number + " — " + a.type + " (" + a.status + ")");
+  lines.push("تاريخ الدخول: " + (a.entryDate || "—"));
+  lines.push("وزن الدخول: " + (num(a.entryWeight) ? fmt(a.entryWeight) + " كجم" : "—"));
+  lines.push("سعر الدخول: " + (num(a.entryPrice) ? fmtMoney(a.entryPrice) : "—"));
+  lines.push("آخر وزن: " + (lw ? fmt(lw) + " كجم" : "—"));
+  if(a.weights && a.weights.length){
+    lines.push("سجل الأوزان:");
+    a.weights.slice().sort(function(x,y){return x.date<y.date?-1:1;}).forEach(function(w){ lines.push("  • " + w.date + ": " + fmt(w.weight) + " كجم"); });
+  }
+  var mmap = monthlyWeights(a);
+  var mkeys = Object.keys(mmap).sort();
+  if(mkeys.length){
+    lines.push("الأوزان الشهرية:");
+    var prevW = null;
+    mkeys.forEach(function(m){
+      var line = "  • " + monthLabel(m) + ": " + fmt(mmap[m]) + " كجم";
+      if(prevW !== null) line += " (الزيادة عن الشهر السابق: " + (mmap[m]-prevW>=0?"+":"") + fmt(mmap[m]-prevW) + " كجم)";
+      lines.push(line);
+      prevW = mmap[m];
+    });
+  }
+  var exps = state.expenses.filter(function(e){return e.animalNumber && String(e.animalNumber)===String(a.number);});
+  if(exps.length){
+    lines.push("مصاريفه المباشرة:");
+    exps.forEach(function(e){ lines.push("  • " + e.date + " — " + e.category + ": " + e.desc + " = " + fmtMoney(e.total)); });
+  }
+  lines.push("مصاريفه المباشرة الإجمالية: " + fmtMoney(animalExpenses(a.number)));
+  lines.push("إجمالي تكلفته: " + fmtMoney(num(a.entryPrice) + animalExpenses(a.number)));
+  if(a.notes) lines.push("ملاحظات: " + a.notes);
+  return lines.join("\n");
+}
+function farmSummaryText(){
+  var lines = [];
+  lines.push("=== ملخص حسابات مزرعة العجول والعجميات ===");
+  lines.push("عدد الحيوانات: " + state.animals.length + " (موجود: " + presentAnimals().length + ")");
+  lines.push("");
+  lines.push("--- الحيوانات ---");
+  state.animals.forEach(function(a){ lines.push(animalSummaryText(a)); lines.push(""); });
+  lines.push("--- تفصيل المصاريف ---");
+  lines.push("أسعار الدخول: " + fmtMoney(entryTotal()));
+  CATS.forEach(function(c){ lines.push(c + ": " + fmtMoney(catTotal(c))); });
+  lines.push("رواتب العمال الشهرية: " + fmtMoney(workersTotal()));
+  if(state.workers.length){
+    state.workers.forEach(function(w){ lines.push("  • " + w.name + (w.role ? " (" + w.role + ")" : "") + ": " + fmtMoney(w.salary) + " / شهر"); });
+  }
+  lines.push("");
+  lines.push("إجمالي المصاريف (بدون أسعار الدخول والرواتب): " + fmtMoney(expensesTotal()));
+  lines.push("الإجمالي الكلي: " + fmtMoney(grandTotal()));
+  if(presentAnimals().length) lines.push("متوسط التكلفة للرأس الموجود: " + fmtMoney(grandTotal()/presentAnimals().length));
+  return lines.join("\n");
+}
+function renderSummary(){
+  document.getElementById("farmSummary").textContent = farmSummaryText();
+  var box = document.getElementById("animalSummaries");
+  if(!state.animals.length){ box.innerHTML = '<div class="empty">لا توجد حيوانات بعد.</div>'; return; }
+  box.innerHTML = state.animals.map(function(a, i){
+    return '<div style="margin-bottom:16px"><div class="row" style="margin-bottom:6px"><b>حيوان رقم '+esc(a.number)+' — '+esc(a.type)+'</b><span class="spacer"></span>' +
+      '<button type="button" class="btn ghost small" data-copya="'+i+'">📋 نسخ ملخص هذا الحيوان</button></div>' +
+      '<pre class="summary">'+esc(animalSummaryText(a))+'</pre></div>';
+  }).join("");
+  box.querySelectorAll("[data-copya]").forEach(function(b){ b.addEventListener("click", function(){
+    copyText(animalSummaryText(state.animals[Number(b.getAttribute("data-copya"))]), document.getElementById("copyMsg"));
+  }); });
+}
+function copyText(text, msgEl){
+  function done(){ if(msgEl) msgEl.textContent = "✓ تم النسخ — الصقه في أي مكان (واتساب، ملاحظات…)"; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+  } else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){ if(msgEl) msgEl.textContent = "انسخ النص يدويًا من المربع بالأعلى."; }
+    document.body.removeChild(ta);
+  }
+}
+document.getElementById("copyFarm").addEventListener("click", function(){
+  copyText(farmSummaryText(), document.getElementById("copyMsg"));
+});
+
+/* ---------- Export / Import ---------- */
+document.getElementById("exportBtn").addEventListener("click", function(){
+  var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "calf-farm-" + today() + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  document.getElementById("ioMsg").textContent = "✓ تم تنزيل ملف البيانات — هتلاقيه في التنزيلات (Downloads).";
+});
+document.getElementById("importFile").addEventListener("change", function(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var d = JSON.parse(reader.result);
+      if(!d || !Array.isArray(d.animals)) throw new Error("bad");
+      d.expenses = d.expenses || []; d.workers = d.workers || [];
+      state = d; save(); resetAnimalForm(); render();
+      document.getElementById("ioMsg").textContent = "✓ تم استيراد البيانات بنجاح (" + state.animals.length + " حيوان).";
+    }catch(e){
+      document.getElementById("ioMsg").textContent = "⚠ الملف غير صالح — تأكد إنه ملف تصدير من هذا التطبيق.";
+    }
+    ev.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+if('serviceWorker' in navigator){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+render();
+})();
+</script>
+</body>
+</html>
